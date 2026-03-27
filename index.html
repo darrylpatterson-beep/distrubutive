@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Break-Apart Math Worksheet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .input-box { width: 65px; text-align: center; border-bottom: 2px solid #cbd5e1; background: transparent; outline: none; transition: all 0.2s; font-weight: 600; }
+        .input-box:focus { border-bottom-color: #3b82f6; background-color: #eff6ff; }
+        .result-box { width: 85px; text-align: center; border-bottom: 2px solid #3b82f6; background-color: #f8fafc; outline: none; font-weight: 700; color: #1e40af; }
+        .problem-row { transition: background-color 0.3s; border-radius: 0.75rem; }
+        .problem-row:hover { background-color: #f1f5f9; }
+        @media print { .no-print { display: none !important; } body { background: white; padding: 0; } .max-w-3xl { max-width: 100%; box-shadow: none; } }
+        .modal-overlay { background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen py-6 px-4 sm:py-12">
+    <div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+        <header class="bg-gradient-to-r from-blue-600 to-indigo-700 p-8 text-white relative">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h1 class="text-3xl font-extrabold tracking-tight">The "Break-Apart" Method</h1>
+                    <p class="text-blue-100 mt-1 font-medium">Mastering the Distributive Property</p>
+                </div>
+                <div class="no-print bg-white/20 p-2 rounded-lg backdrop-blur-md flex flex-col items-center gap-1 shadow-inner border border-white/10">
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">Assign in Classroom</span>
+                    <div class="g-sharetoclassroom" data-size="32"></div>
+                </div>
+            </div>
+        </header>
+
+        <main class="p-6 sm:p-10">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10 pb-8 border-b border-slate-100">
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Student Name</label>
+                    <input type="text" placeholder="Enter name..." class="w-full border-b-2 border-slate-200 py-2 focus:border-blue-500 outline-none text-lg font-semibold transition-colors">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Date</label>
+                    <input type="text" id="currentDate" class="w-full border-b-2 border-slate-200 py-2 focus:border-blue-500 outline-none text-lg font-semibold transition-colors">
+                </div>
+            </div>
+
+            <section class="mb-12">
+                <div class="bg-amber-50 border-l-4 border-amber-400 p-5 rounded-r-xl shadow-sm">
+                    <div class="flex items-center gap-3 mb-3 text-amber-900 uppercase text-sm font-bold tracking-widest">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        How it works
+                    </div>
+                    <p class="text-amber-800 leading-relaxed">Break the large number into tens and ones. Multiply both and add them up!</p>
+                </div>
+            </section>
+
+            <section class="space-y-4">
+                <div class="flex justify-between items-end mb-4">
+                    <h2 class="text-xl font-bold text-slate-800">Practice Problems</h2>
+                    <span id="progress-text" class="text-xs font-bold text-slate-400 uppercase tracking-tighter">0 / 10 Completed</span>
+                </div>
+                <div id="problems-container" class="space-y-4"></div>
+            </section>
+
+            <div class="mt-16 no-print flex flex-col items-center gap-6 border-t border-slate-100 pt-10">
+                <button id="check-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-bold py-4 px-12 rounded-2xl transition-all shadow-lg active:scale-95 flex items-center gap-3">
+                    Finish & Check Answers
+                </button>
+                <div class="flex items-center gap-8 text-slate-400 font-semibold text-sm">
+                    <button id="reset-btn" class="hover:text-red-500">Reset All</button>
+                    <button onclick="window.print()" class="hover:text-indigo-600">Print PDF</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="results-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-8 text-center shadow-2xl" id="modal-content">
+            <div id="modal-icon" class="w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4"></div>
+            <h3 id="modal-title" class="text-2xl font-black text-slate-800"></h3>
+            <p id="modal-text" class="text-slate-500 mb-6 font-medium"></p>
+            <div class="bg-slate-50 rounded-2xl p-4 mb-6">
+                <div class="text-4xl font-black text-indigo-600" id="modal-score"></div>
+            </div>
+            <button onclick="closeModal()" class="w-full bg-slate-800 text-white font-bold py-4 rounded-xl">Review Work</button>
+        </div>
+    </div>
+
+    <script>
+        const problemsData = [
+            { id: 1, n1: 24, n2: 6, tens: 20, ones: 4, ans: 144 },
+            { id: 2, n1: 42, n2: 5, tens: 40, ones: 2, ans: 210 },
+            { id: 3, n1: 18, n2: 7, tens: 10, ones: 8, ans: 126 },
+            { id: 4, n1: 53, n2: 4, tens: 50, ones: 3, ans: 212 },
+            { id: 5, n1: 26, n2: 8, tens: 20, ones: 6, ans: 208 },
+            { id: 6, n1: 61, n2: 3, tens: 60, ones: 1, ans: 183 },
+            { id: 7, n1: 35, n2: 6, tens: 30, ones: 5, ans: 210 },
+            { id: 8, n1: 72, n2: 4, tens: 70, ones: 2, ans: 288 },
+            { id: 9, n1: 48, n2: 2, tens: 40, ones: 8, ans: 96 },
+            { id: 10, n1: 89, n2: 5, tens: 80, ones: 9, ans: 445 }
+        ];
+
+        const container = document.getElementById('problems-container');
+        document.getElementById('currentDate').value = new Date().toLocaleDateString();
+
+        problemsData.forEach(p => {
+            const div = document.createElement('div');
+            div.className = "problem-row flex flex-wrap items-center gap-3 p-4 border border-slate-50";
+            div.innerHTML = `
+                <div class="font-black text-slate-300 w-8">${p.id}</div>
+                <div class="text-xl font-bold text-slate-700 w-24">${p.n1} &times; ${p.n2} =</div>
+                <div class="flex items-center gap-1.5 px-4 py-2 bg-slate-50 rounded-xl border border-slate-100 flex-grow max-w-md">
+                    (<input type="number" id="t-${p.id}" oninput="updateProgress()" class="input-box" placeholder="tens"> &times; ${p.n2}) + 
+                    (<input type="number" id="o-${p.id}" oninput="updateProgress()" class="input-box" placeholder="ones"> &times; ${p.n2})
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="font-bold text-slate-400">=</span>
+                    <input type="number" id="a-${p.id}" oninput="updateProgress()" class="result-box py-2 rounded-lg" placeholder="Total">
+                    <div id="status-${p.id}"></div>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+
+        function updateProgress() {
+            const filled = Array.from(document.querySelectorAll('.result-box')).filter(i => i.value).length;
+            document.getElementById('progress-text').textContent = `${filled} / 10 Completed`;
+        }
+
+        document.getElementById('check-btn').onclick = () => {
+            let score = 0;
+            problemsData.forEach(p => {
+                const isCorrect = (parseInt(document.getElementById(`t-${p.id}`).value) === p.tens && parseInt(document.getElementById(`o-${p.id}`).value) === p.ones && parseInt(document.getElementById(`a-${p.id}`).value) === p.ans);
+                if (isCorrect) { score++; document.getElementById(`status-${p.id}`).innerHTML = '✅'; }
+                else { document.getElementById(`status-${p.id}`).innerHTML = '❌'; }
+            });
+            document.getElementById('modal-score').textContent = `${score} / 10`;
+            document.getElementById('modal-title').textContent = score === 10 ? "Perfect Score!" : "Good Effort!";
+            document.getElementById('results-modal').classList.remove('hidden');
+        };
+
+        window.closeModal = () => document.getElementById('results-modal').classList.add('hidden');
+        document.getElementById('reset-btn').onclick = () => location.reload();
+    </script>
+</body>
+</html>
